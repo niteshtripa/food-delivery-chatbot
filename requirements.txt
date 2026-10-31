@@ -1,0 +1,7 @@
+streamlit==1.66.1
+pandas==2.3.3
+langchain==1.4.3
+langchain-community
+langchain-groq
+langgraph
+truststore

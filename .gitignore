@@ -1,0 +1,7 @@
+.groq_key
+.venv/
+figures/
+__pycache__/
+*.bak
+exec.log
+*.ipynb
