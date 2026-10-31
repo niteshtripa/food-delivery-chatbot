@@ -56,6 +56,11 @@ st.markdown("""
                 font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
                 white-space:pre-wrap; word-break:break-word; }
   .raw  { border-left-color:#e9a23b; }
+  .welcome { background:linear-gradient(100deg,#eef5fb,#e7f3f0); border:1px solid #cfe0ec;
+             border-radius:12px; padding:14px 18px; margin-bottom:12px; }
+  .welcome .wt { font-weight:700; color:#1d3557; font-size:1.02rem; }
+  .welcome .ws { color:#3c5a73; font-size:.86rem; margin-top:5px; line-height:1.45; }
+  div[data-testid="stButton"] button { border-radius:10px; font-size:.86rem; }
   .sqlb { border-left-color:#8a63d2; }
 </style>
 """, unsafe_allow_html=True)
@@ -262,7 +267,7 @@ with st.sidebar:
                  hide_index=True, use_container_width=True, height=240)
 
     st.divider()
-    st.subheader("Try asking")
+    st.subheader("More questions")
     SAMPLES = [
         "What's the status of my order O12486?",
         "What items are in order O12488?",
@@ -288,11 +293,34 @@ if "last_trace" not in st.session_state:
     st.session_state.last_trace = None
 
 with chat_col:
+    if not st.session_state.messages:
+        st.markdown("""
+<div class="welcome">
+  <div class="wt">👋 Try it — tap a question below</div>
+  <div class="ws">This assistant answers from a real order database. Every reply shows you
+  the exact query behind it, so you can check it yourself.</div>
+</div>""", unsafe_allow_html=True)
+        STARTERS = [
+            ("📦 Where's my order?", "What's the status of my order O12486?"),
+            ("🍔 What did I order?", "What items are in order O12488?"),
+            ("⏰ Was it late?", "Has order O12490 been delivered, and did it arrive on time?"),
+            ("💳 Was I charged?", "Was I charged for order O12487?"),
+            ("🕵️ Try to break it", "Can you check order O99999 for me please?"),
+            ("🤔 Ask it something vague", "Is my order late?"),
+        ]
+        cols = st.columns(2)
+        for i, (label, q) in enumerate(STARTERS):
+            if cols[i % 2].button(label, key=f"st{i}", use_container_width=True):
+                st.session_state.pending = q
+                st.rerun()
+        st.caption("The last two are the interesting ones — one asks about an order that "
+                   "doesn't exist, the other is too vague to answer.")
+
     st.markdown("#### Conversation")
     board = st.container(height=430)
     with board:
         if not st.session_state.messages:
-            st.info("Ask about an order, or pick a sample question from the sidebar.")
+            st.info("Tap a question above, or type your own below.")
         for m in st.session_state.messages:
             with st.chat_message(m["role"], avatar="🧑" if m["role"] == "user" else "🛵"):
                 st.markdown(m["content"])
@@ -370,8 +398,8 @@ with chat_col:
         st.rerun()
 
 with trace_col:
-    st.markdown("#### Behind the answer")
-    st.caption("Every reply is traceable to the query that produced it.")
+    st.markdown("#### 🔍 Behind the answer")
+    st.caption("Don't take the bot's word for it — here's the query it ran.")
     tr = st.session_state.last_trace
     if not tr:
         st.markdown('<div class="stage"><div class="lbl">waiting</div>'
